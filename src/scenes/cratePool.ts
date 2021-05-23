@@ -2,12 +2,19 @@ import Phaser from 'phaser'
 
 const KEY_CRATE = 'crate'
 
+class Crate extends Phaser.Physics.Matter.Image
+{
+    constructor(scene: Phaser.Scene,x: number, y: number, key: string)
+    {
+        super(scene.matter.world, x, y, key)
+    }
+}
 export default class CratePool extends Phaser.GameObjects.Group
 {
 	constructor(scene: Phaser.Scene, config: Phaser.Types.GameObjects.Group.GroupConfig = {})
 	{
 		const defaults: Phaser.Types.GameObjects.Group.GroupConfig = {
-			classType: Phaser.GameObjects.Image,
+			classType: Crate    ,
 			maxSize: -1
 		}
 
@@ -16,20 +23,30 @@ export default class CratePool extends Phaser.GameObjects.Group
 
 	spawn(x = 0, y = 0, key: string = KEY_CRATE)
 	{
-        const crate: Phaser.GameObjects.Image = this.get(x, y, KEY_CRATE)
+        const spawnExisting = this.countActive(false) > 0
+        const crate: Crate = super.get(x, y, key)
 
-		crate.setVisible(true)
-		crate.setActive(true)
+        if (!crate)
+        {
+            return
+        }
 
-		return crate
+        if (spawnExisting)
+        {
+            crate.setVisible(true)
+		    crate.setActive(true)
+            crate.world.add(crate.body)
+        }
+        
+        return crate
 	}
 
-	despawn(crate: Phaser.GameObjects.Image)
+	despawn(crate: Crate)
 	{
-        this.killAndHide(crate)
-
-		crate.alpha = 1
-		crate.scale = 1
+        crate.setActive(false)
+		crate.setVisible(false)
+		crate.removeInteractive()
+		crate.world.remove(crate.body)
 	}
 
     initializeWithSize(size: number)
@@ -47,6 +64,8 @@ export default class CratePool extends Phaser.GameObjects.Group
 		})
 	}
 }
+
+
 
 Phaser.GameObjects.GameObjectFactory.register('cratePool', function () {
 	// @ts-ignore

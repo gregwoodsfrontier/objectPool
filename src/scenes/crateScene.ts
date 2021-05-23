@@ -29,18 +29,20 @@ export default class CratesScene extends Phaser.Scene
 
 	create()
 	{
-        this.group = this.add.cratePool()
-        this.group?.initializeWithSize(5)
-
-		/* this.group = this.add.group({
-			defaultKey: KEY_CRATE
-		}) */
+        this.matter.world.setBounds(0, -100, this.scale.width, this.scale.height + 100)
+		
+		this.group = this.add.cratePool()
 
 		this.infoText = this.add.text(16, 16, '')
+		this.infoText.setDepth(1000)
 
-        this.input.on(Phaser.Input.Events.POINTER_DOWN, pointer => {
-            this.spawnCrate(pointer.x, pointer.y)
-        })
+        this.time.addEvent({
+			delay: 500,
+			loop: true,
+			callback: () => {
+				this.spawnCrate()
+			}
+		})
 	}
 
 	update()
@@ -64,31 +66,34 @@ export default class CratesScene extends Phaser.Scene
 		this.infoText.setText(text)
 	}
 
-	private spawnCrate(x = 400, y = 300)
+	private spawnCrate()
 	{
         if (!this.group)
-        {
-            return null
-        }
+		{
+			return
+		}
 
-        const crate = this.group.spawn(x, y)
-        
-        crate.alpha = 1
-        crate.scale = 1
-        crate.setVisible(true)
-        crate.setActive(true)
+		if (this.group.countActive(true) >= 10)
+		{
+			return
+		}
 
-        this.tweens.add({
-            targets: crate,
-            scale: 2,
-            alpha: 0,
-            duration: Phaser.Math.Between(500, 1500),
-            onComplete: (tween) => {
-                this.group?.despawn(crate)
-                this.tweens.killTweensOf(crate)
-            }
-        })
+		const tex = this.textures.get(KEY_CRATE)
+		const halfWidth = tex.getSourceImage().width * 0.5
+		const x = Phaser.Math.Between(halfWidth, this.scale.width - halfWidth)
 
-        return crate
+		const crate = this.group.spawn(x, 0)
+
+		if (!crate)
+		{
+			return
+		}
+
+		crate.setInteractive()
+			.on(Phaser.Input.Events.GAMEOBJECT_POINTER_UP, pointer => {
+				this.group!.despawn(crate)
+			})
+
+		return crate
     }
 }

@@ -1,6 +1,7 @@
 import Phaser from 'phaser'
 
-const KEY_CRATE = 'crate'
+import CratePool, { KEY_CRATE } from './cratePool'
+
 const INFO_FORMAT = 
 `Size:       %1
 Spawned:    %2
@@ -8,12 +9,17 @@ Despawned:  %3`
 
 export default class CratesScene extends Phaser.Scene
 {
-	private group?: Phaser.GameObjects.Group
+	private group?: CratePool
 	private infoText?: Phaser.GameObjects.Text
 
 	constructor()
 	{
+        const defaults: Phaser.Types.GameObjects.Group.GroupConfig = {
+            classType: Phaser.GameObjects.Image,
+            maxSize: -1
+        }
 		super('crates-scene-basic')
+        
 	}
 
 	preload()
@@ -23,9 +29,12 @@ export default class CratesScene extends Phaser.Scene
 
 	create()
 	{
-		this.group = this.add.group({
+        this.group = this.add.cratePool()
+        this.group?.initializeWithSize(5)
+
+		/* this.group = this.add.group({
 			defaultKey: KEY_CRATE
-		})
+		}) */
 
 		this.infoText = this.add.text(16, 16, '')
 
@@ -62,7 +71,7 @@ export default class CratesScene extends Phaser.Scene
             return null
         }
 
-        const crate: Phaser.GameObjects.Sprite = this.group.create(x, y, KEY_CRATE)
+        const crate = this.group.spawn(x, y)
         
         crate.alpha = 1
         crate.scale = 1
@@ -75,7 +84,7 @@ export default class CratesScene extends Phaser.Scene
             alpha: 0,
             duration: Phaser.Math.Between(500, 1500),
             onComplete: (tween) => {
-                this.group!.killAndHide(crate)
+                this.group?.despawn(crate)
                 this.tweens.killTweensOf(crate)
             }
         })

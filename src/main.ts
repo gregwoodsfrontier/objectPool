@@ -1,9 +1,11 @@
-import Phaser from 'phaser'
+// import Phaser from 'phaser'
+import 'phaser'
 
-import HelloWorldScene from './scenes/HelloWorldScene'
-import CratesScene from './scenes/crateScene'
+// import CratesScene from './scenes/basic-demo/CratesScene'
+// import CratesScene from './scenes/pool-class-demo/CratesScene'
+import CratesScene from './scenes/physics-demo/CratesScene'
 
-const config: Phaser.Types.Core.GameConfig = {
+const config = {
 	type: Phaser.AUTO,
 	width: 800,
 	height: 600,
